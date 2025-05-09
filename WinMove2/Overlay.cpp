@@ -10,12 +10,19 @@ Overlay::Overlay() {
 
 void Overlay::StartDrag(HWND hwnd, POINT startPoint) {
 	targetWindow = hwnd;
-	SetForegroundWindow(targetWindow);
+
+	DWORD fgThread = GetWindowThreadProcessId(GetForegroundWindow(), nullptr);
+	DWORD tgtThread = GetWindowThreadProcessId(hwnd, nullptr);
+	DWORD curThread = GetCurrentThreadId();
+	AttachThreadInput(curThread, fgThread, TRUE);
+	AttachThreadInput(curThread, tgtThread, TRUE);
+	SetForegroundWindow(hwnd);
+	AttachThreadInput(curThread, fgThread, FALSE);
+	AttachThreadInput(curThread, tgtThread, FALSE);
 
 	RECT windowRect{};
 	GetWindowRect(targetWindow, &windowRect);
 
-	// logic to move the anchor point when grabbing a window that is maximized so the mouse never goes outside the window
 	if (IsZoomed(targetWindow)) {
 		anchorXPercent = static_cast<double>(startPoint.x - windowRect.left) / (windowRect.right - windowRect.left);
 		anchorYPercent = static_cast<double>(startPoint.y - windowRect.top) / (windowRect.bottom - windowRect.top);
@@ -47,7 +54,15 @@ void Overlay::StartDrag(HWND hwnd, POINT startPoint) {
 
 void Overlay::StartResize(HWND hwnd, POINT startPoint) {
 	targetWindow = hwnd;
-	SetForegroundWindow(targetWindow);
+
+	DWORD fgThread = GetWindowThreadProcessId(GetForegroundWindow(), nullptr);
+	DWORD tgtThread = GetWindowThreadProcessId(hwnd, nullptr);
+	DWORD curThread = GetCurrentThreadId();
+	AttachThreadInput(curThread, fgThread, TRUE);
+	AttachThreadInput(curThread, tgtThread, TRUE);
+	SetForegroundWindow(hwnd);
+	AttachThreadInput(curThread, fgThread, FALSE);
+	AttachThreadInput(curThread, tgtThread, FALSE);
 
 	lastMousePos = startPoint;
 	GetWindowRect(targetWindow, &outlineRect);
